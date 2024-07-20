@@ -1,0 +1,225 @@
+import { useQuery } from "react-query";
+import styled from "styled-components";
+import { getPopular, IGetMoviesResult, IMovieDetail, makeBgPath, makeImagePath } from "../api";
+import { AnimatePresence, motion, useViewportScroll } from "framer-motion";
+import { useHistory, useRouteMatch } from "react-router-dom";
+
+const Wrapper = styled.div`
+    background-color: black;
+    padding-bottom: 200px;
+`;
+
+const Loader = styled.div`
+  height: 20vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const Banner = styled.div<{ bgPhoto:string }>`
+    height: 100vh;
+    // background-color: red;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px;
+    background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 1)),  url(${(props) => props.bgPhoto });
+    background-size: cover;
+`;
+
+const Title = styled.h2`
+    font-size: 68px;
+    margin-bottom: 20px;
+`;
+
+const Overview = styled.p`
+    font-size: 20px;
+    width: 50%; 
+`;
+
+const Container = styled.div`
+    display: flex;
+    max-width: 750px;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    /* border: 1px solid red; */
+`;
+
+const MovieList = styled.ul`
+    padding: 0px;
+    position: relative;
+    top: -100px;
+    /* border: 1px solid blue; */
+`;
+const Movie = styled(motion.li)`
+    float: left;
+    width: 225px;
+    height: 420px;
+    margin: 10px 11px;
+    /* border: 1px solid white; */
+`;
+
+const Img = styled(motion.img)`
+    width: 220px;
+    margin: 0px 2.5px;
+    margin-right: 10px;
+    border-radius: 15px;
+    /* border: 2px solid yellow; */
+`;
+
+const MovieTitle = styled.h2`
+  color: #dcdcdc;
+  text-align: center;
+  margin: 15px 0px;
+  word-break: keep-all;
+  font-size: 20px;
+  font-weight: 500;
+  /* border: 1px solid blue; */
+`;
+
+const Overlay = styled(motion.div)`
+    position: fixed; //스크롤을 내리면 오버레이가 안된 부분이 생겨서 fixed로 해줌
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+`;
+
+const ModalMovie = styled(motion.div)`
+    position: absolute;
+    width: 40vw;
+    height: 80vh;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    border-radius: 15px;
+    background-color: #323232;
+`;
+
+const ModalTitle = styled.h3`
+    color: ${(props) => props.theme.white.lighter};
+    padding: 20px;
+    font-size: 46px;
+    font-weight: 550;
+    position: relative;
+    top: -80px;
+`;
+
+const ModalOverview = styled.p`
+    padding: 20px;
+    position: relative;
+    top: -90px;
+    color: ${(props) => props.theme.white.lighter};
+`;
+
+const ModalCover = styled.div`
+    width: 100%;
+    background-size: cover;
+    background-position: center center;
+    height: 400px;
+`;
+
+const ModalRelease = styled.p`
+    padding: 20px;
+    position: relative;
+    top: -110px;
+    color: ${(props) => props.theme.white.lighter};
+`;
+const ModalRating = styled.p`
+    padding: 20px;
+    position: relative;
+    top: -150px;
+    color: ${(props) => props.theme.white.lighter};
+`;
+
+const boxVariants = {
+    normal: {
+        scale: 1,
+    },
+    hover: {
+        scale: 1.1,
+        y: -30,
+
+    }
+}
+
+function Popular() {
+    const history = useHistory();
+    const { data, isLoading } = useQuery<IGetMoviesResult>(
+        ["movies", "popular"], getPopular
+    );
+    // console.log(data, isLoading);
+
+    const bigMovieMatch = useRouteMatch<{ movieId: string }>("/movies/:movieId");
+    const { scrollY } = useViewportScroll();
+    const onBoxClicked = (movieId: number) => {
+        history.push(`/movies/${movieId}`);
+    };
+    const onOverlayClick = () => history.push("/");
+    const clickedMovie = bigMovieMatch?.params.movieId && data?.results.find(movie => movie.id === +bigMovieMatch.params.movieId);
+    // console.log(clickedMovie);
+
+    return (
+        <Wrapper>{isLoading ? (
+            <Loader>Loading ....</Loader>
+        ) : (
+            <>
+            <Banner bgPhoto={makeBgPath(data?.results[0].backdrop_path || "")}>
+                <Title>{data?.results[0].title}</Title>
+                <Overview>{data?.results[0].overview}</Overview>
+            </Banner>
+            <Container>
+                <MovieList>
+                    {data?.results.map((mov) => (
+                        <Movie>
+                            <Img 
+                                layoutId={mov.id + ""}
+                                key={mov.id}
+                                variants={boxVariants}
+                                initial="normal"
+                                whileHover="hover"
+                                onClick={() => onBoxClicked(mov.id)}
+                                src={`https://image.tmdb.org/t/p/w500${mov.poster_path}`} 
+                            />
+                            <MovieTitle>{mov.original_title}</MovieTitle>
+                        </Movie>
+                    ))}
+                </MovieList>
+            </Container>
+            <AnimatePresence>
+                { bigMovieMatch ? (
+                    <>
+                        <Overlay
+                            onClick={onOverlayClick} 
+                            exit={{opacity: 0}}
+                            animate={{opacity: 1}} />
+                        <ModalMovie
+                                style={{top: scrollY.get() + 100}}
+                                layoutId={bigMovieMatch.params.movieId}
+                        >
+                            {clickedMovie && <>
+                                <ModalCover 
+                                    style={{backgroundImage:`linear-gradient(to top, #323232, transparent), url(${makeImagePath(clickedMovie.backdrop_path)})`, borderRadius:"15px"}} />
+                                <ModalTitle>{clickedMovie.title}</ModalTitle>
+                                <ModalOverview>{clickedMovie.overview}</ModalOverview>
+                                <ModalRelease>
+                                    last release: {clickedMovie.release_date} <br /> 
+                                    Rating: {clickedMovie.vote_average.toFixed(2)}
+                                </ModalRelease>
+                            </>}
+                        </ModalMovie>
+                        
+                        
+                    </>
+                ) : null }
+            </AnimatePresence>
+            </>
+        ) }
+
+        </Wrapper>
+    );
+};
+
+export default Popular;
