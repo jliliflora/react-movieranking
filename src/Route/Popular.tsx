@@ -7,8 +7,14 @@ import {
   makeBgPath,
   makeImagePath,
 } from "../api";
-import { AnimatePresence, motion, useViewportScroll } from "framer-motion";
+import {
+  AnimatePresence,
+  delay,
+  motion,
+  useViewportScroll,
+} from "framer-motion";
 import { useHistory, useRouteMatch } from "react-router-dom";
+import { start } from "repl";
 
 const Wrapper = styled.div`
   background-color: black;
@@ -22,7 +28,7 @@ const Loader = styled.div`
   align-items: center;
 `;
 
-const Banner = styled.div<{ bgPhoto: string }>`
+const Banner = styled(motion.div)<{ bgPhoto: string }>`
   height: 100vh;
   // background-color: red;
   display: flex;
@@ -34,17 +40,17 @@ const Banner = styled.div<{ bgPhoto: string }>`
   background-size: cover;
 `;
 
-const BannerTitle = styled.h3`
+const BannerTitle = styled(motion.h3)`
   font-size: 15px;
   color: #acacac;
 `;
 
-const Title = styled.h2`
+const Title = styled(motion.h2)`
   font-size: 68px;
   margin-bottom: 20px;
 `;
 
-const Overview = styled.p`
+const Overview = styled(motion.p)`
   font-size: 20px;
   width: 50%;
 `;
@@ -58,7 +64,7 @@ const Container = styled.div`
   /* border: 1px solid red; */
 `;
 
-const MovieList = styled.ul`
+const MovieList = styled(motion.ul)`
   padding: 0px;
   position: relative;
   top: -100px;
@@ -150,6 +156,44 @@ const boxVariants = {
   },
 };
 
+const bannerVariants = {
+  start: { opacity: 0 },
+  end: {
+    opacity: 1,
+    transition: {
+      duration: 0.7,
+      delayChildren: 0.4,
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const bannerDetailVar = {
+  start: {
+    opacity: 0,
+    y: 50,
+  },
+  end: {
+    opacity: 1,
+    y: 0,
+  },
+};
+
+const MovieVariants = {
+  start: {},
+  end: {
+    transition: {
+      delayChildren: 0.7,
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const MovieDetailVar = {
+  start: { opacity: 0, y: 100 },
+  end: { opacity: 1, y: 0 },
+};
+
 function Popular() {
   const history = useHistory();
   const { data, isLoading } = useQuery<IGetMoviesResult>(
@@ -175,15 +219,22 @@ function Popular() {
         <Loader>Loading ....</Loader>
       ) : (
         <>
-          <Banner bgPhoto={makeBgPath(data?.results[0].backdrop_path || "")}>
-            <BannerTitle>Popular</BannerTitle>
-            <Title>{data?.results[0].title}</Title>
-            <Overview>{data?.results[0].overview}</Overview>
+          <Banner
+            bgPhoto={makeBgPath(data?.results[0].backdrop_path || "")}
+            variants={bannerVariants}
+            initial="start"
+            animate="end"
+          >
+            <BannerTitle variants={bannerDetailVar}>Popular</BannerTitle>
+            <Title variants={bannerDetailVar}>{data?.results[0].title}</Title>
+            <Overview variants={bannerDetailVar}>
+              {data?.results[0].overview}
+            </Overview>
           </Banner>
           <Container>
-            <MovieList>
+            <MovieList variants={MovieVariants} initial="start" animate="end">
               {data?.results.map((mov) => (
-                <Movie>
+                <Movie variants={MovieDetailVar}>
                   <Img
                     layoutId={mov.id + ""}
                     key={mov.id}
