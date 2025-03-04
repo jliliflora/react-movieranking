@@ -190,7 +190,7 @@ const MovieDetailVar = {
 function NowPlaying() {
   const history = useHistory();
   const { data, isLoading } = useQuery<IGetMoviesResult>(
-    ["movies", "popular"],
+    ["movies", "nowPlaying"],
     getNowPlaying
   );
   // console.log(data, isLoading);

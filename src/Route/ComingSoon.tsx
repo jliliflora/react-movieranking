@@ -191,7 +191,7 @@ const MovieDetailVar = {
 function ComingSoon() {
   const history = useHistory();
   const { data, isLoading } = useQuery<IGetMoviesResult>(
-    ["movies", "popular"],
+    ["movies", "comingSoon"],
     getComingSoon
   );
   // console.log(data, isLoading);
