@@ -3,11 +3,12 @@ import { useQuery } from "react-query";
 import styled from "styled-components";
 import {
   IGetMoviesResult,
+  IMovieDetail,
   getNowPlaying,
   makeBgPath,
-  makeImagePath,
 } from "../api";
 import { useHistory, useRouteMatch } from "react-router-dom";
+import MovieModal from "../Components/MovieModal";
 
 const Wrapper = styled.div`
   background-color: black;
@@ -89,56 +90,6 @@ const MovieTitle = styled.h2`
   /* border: 1px solid blue; */
 `;
 
-const Overlay = styled(motion.div)`
-  position: fixed; //스크롤을 내리면 오버레이가 안된 부분이 생겨서 fixed로 해줌
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  opacity: 0;
-`;
-
-const ModalMovie = styled(motion.div)`
-  position: absolute;
-  width: 40vw;
-  height: 80vh;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  border-radius: 15px;
-  background-color: #323232;
-`;
-
-const ModalTitle = styled.h3`
-  color: ${(props) => props.theme.white.lighter};
-  padding: 20px;
-  font-size: 46px;
-  font-weight: 550;
-  position: relative;
-  top: -80px;
-`;
-
-const ModalOverview = styled.p`
-  padding: 20px;
-  position: relative;
-  top: -90px;
-  color: ${(props) => props.theme.white.lighter};
-`;
-
-const ModalCover = styled.div`
-  width: 100%;
-  background-size: cover;
-  background-position: center center;
-  height: 400px;
-`;
-
-const ModalRelease = styled.p`
-  padding: 20px;
-  position: relative;
-  top: -110px;
-  color: ${(props) => props.theme.white.lighter};
-`;
-
 const boxVariants = {
   normal: {
     scale: 1,
@@ -203,10 +154,18 @@ function NowPlaying() {
     history.push(`/now-playing/movies/${movieId}`);
   };
   const onOverlayClick = () => history.push("/now-playing");
-  const clickedMovieNowPly =
-    bigMovieMatch?.params.movieId &&
-    data?.results.find((movie) => movie.id === +bigMovieMatch.params.movieId);
+
+  // const clickedMovieNowPly =
+  //   bigMovieMatch?.params.movieId &&
+  //   data?.results.find((movie) => movie.id === +bigMovieMatch.params.movieId);
   // console.log(clickedMovie);
+  const clickedMovie: IMovieDetail | null =
+    bigMovieMatch?.params.movieId &&
+    data?.results.find((movie) => movie.id === +bigMovieMatch.params.movieId)
+      ? (data.results.find(
+          (movie) => movie.id === +bigMovieMatch.params.movieId
+        ) as IMovieDetail)
+      : null;
 
   return (
     <Wrapper>
@@ -246,38 +205,11 @@ function NowPlaying() {
           </Container>
           <AnimatePresence>
             {bigMovieMatch ? (
-              <>
-                <Overlay
-                  onClick={onOverlayClick}
-                  exit={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                />
-                <ModalMovie
-                  style={{ top: scrollY.get() + 100 }}
-                  layoutId={bigMovieMatch.params.movieId}
-                >
-                  {clickedMovieNowPly && (
-                    <>
-                      <ModalCover
-                        style={{
-                          backgroundImage: `linear-gradient(to top, #323232, transparent), url(${makeImagePath(
-                            clickedMovieNowPly.backdrop_path
-                          )})`,
-                          borderRadius: "15px",
-                        }}
-                      />
-                      <ModalTitle>{clickedMovieNowPly.title}</ModalTitle>
-                      <ModalOverview>
-                        {clickedMovieNowPly.overview}
-                      </ModalOverview>
-                      <ModalRelease>
-                        last release: {clickedMovieNowPly.release_date} <br />
-                        Rating: {clickedMovieNowPly.vote_average.toFixed(2)}
-                      </ModalRelease>
-                    </>
-                  )}
-                </ModalMovie>
-              </>
+              <MovieModal
+                movie={clickedMovie}
+                onClose={onOverlayClick}
+                scrollY={scrollY.get()}
+              />
             ) : null}
           </AnimatePresence>
         </>
