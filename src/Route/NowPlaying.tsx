@@ -9,6 +9,7 @@ import {
 } from "../api";
 import { useHistory, useRouteMatch } from "react-router-dom";
 import MovieModal from "../Components/MovieModal";
+import Banner from "../Components/Banner";
 
 const Wrapper = styled.div`
   background-color: black;
@@ -20,33 +21,6 @@ const Loader = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-`;
-
-const Banner = styled(motion.div)<{ bgPhoto: string }>`
-  height: 100vh;
-  // background-color: red;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 60px;
-  background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 1)),
-    url(${(props) => props.bgPhoto});
-  background-size: cover;
-`;
-
-const BannerTitle = styled(motion.h3)`
-  font-size: 15px;
-  color: #acacac;
-`;
-
-const Title = styled(motion.h2)`
-  font-size: 68px;
-  margin-bottom: 20px;
-`;
-
-const Overview = styled(motion.p)`
-  font-size: 20px;
-  width: 50%;
 `;
 
 const Container = styled.div`
@@ -100,29 +74,6 @@ const boxVariants = {
   },
 };
 
-const bannerVariants = {
-  start: { opacity: 0 },
-  end: {
-    opacity: 1,
-    transition: {
-      duration: 0.7,
-      delayChildren: 0.5,
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-const bannerDetailVar = {
-  start: {
-    opacity: 0,
-    y: 50,
-  },
-  end: {
-    opacity: 1,
-    y: 0,
-  },
-};
-
 const MovieVariants = {
   start: {},
   end: {
@@ -173,7 +124,7 @@ function NowPlaying() {
         <Loader>Loading ....</Loader>
       ) : (
         <>
-          <Banner
+          {/* <Banner
             bgPhoto={makeBgPath(data?.results[0].backdrop_path || "")}
             variants={bannerVariants}
             initial="start"
@@ -184,7 +135,12 @@ function NowPlaying() {
             <Overview variants={bannerDetailVar}>
               {data?.results[0].overview}
             </Overview>
-          </Banner>
+          </Banner> */}
+          <Banner
+            bgPhoto={makeBgPath(data?.results[0].backdrop_path || "")}
+            title={data?.results[0].title || ""}
+            overview={data?.results[0].overview || ""}
+          />
           <Container>
             <MovieList variants={MovieVariants} initial="start" animate="end">
               {data?.results.map((mov) => (
